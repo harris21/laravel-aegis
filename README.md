@@ -18,13 +18,13 @@
 
 ## Why Aegis
 
-A string isn't an email until something validates it. An int isn't money until something tags its currency. A coordinate pair can be passed in either order, and PHP won't notice.
+A string isn't an email until something validates it. An int isn't money until something tags its currency.
 
-A Value Object fixes that. Its constructor either accepts the input and produces a valid instance, or throws. Bad values never reach the rest of the system.
+A Value Object fixes that. Its constructor accepts the input and produces a valid instance, or throws. Bad values never reach the rest of the system.
 
-The catch: a Value Object that does its job is around 70 lines of PHP. `final readonly` class, validation in the constructor, normalization, an `equals()` method, the `Castable` block with `get` / `set` / `compare` for Eloquent. Typing that for every string a team wants to harden costs more than the string was costing.
+The catch: a Value Object that does its job is around 70 lines of PHP. `final readonly` class, validation in the constructor, normalization, an `equals()` method, the `Castable` block with `get`/`set`/`compare` for Eloquent. Typing that for every string a team wants to harden costs more than the string was costing.
 
-Aegis writes those lines for you. One Artisan command produces the class, a Pest test stub, and the Eloquent cast wiring on a target model. You write the methods that belong to your domain.
+Aegis writes those lines for you. One Artisan command produces the Value Object class with everything wired up, plus a Pest test stub. If you pass `--cast=Model.column`, it also patches the model. You write the methods that belong to your domain.
 
 ## Requirements
 
@@ -59,7 +59,7 @@ php artisan make:value-object Email \
 
 Generates:
 
-- `app/Domain/ValueObjects/Email.php` — `final readonly`, validated, normalized, with `Castable`, `Stringable`, `JsonSerializable`, and an empty `domain(): string` stub for you to fill in.
+- `app/Domain/ValueObjects/Email.php` — `final readonly`, validated, normalized, with the Castable block wired for Eloquent. Implements `Stringable` and `JsonSerializable` for the application edges. Contains an empty `domain(): string` stub for you to fill in.
 - `tests/Unit/EmailTest.php` — Pest stub awaiting your assertions.
 - `app/Models/Order.php` — patched to add `'email' => Email::class` inside its `casts()` method, preserving the existing indentation.
 
