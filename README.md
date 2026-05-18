@@ -16,9 +16,15 @@
 
 ---
 
-## Status
+## Why Aegis
 
-v0.1 in active development. Targeting [Laravel Live Japan 2026](https://laravellive.jp/en).
+A string isn't an email until something validates it. An int isn't money until something tags its currency. A coordinate pair can be passed in either order, and PHP won't notice.
+
+A Value Object fixes that. Its constructor either accepts the input and produces a valid instance, or throws. Bad values never reach the rest of the system.
+
+The catch: a Value Object that does its job is around 70 lines of PHP. `final readonly` class, validation in the constructor, normalization, an `equals()` method, the `Castable` block with `get` / `set` / `compare` for Eloquent. Typing that for every string a team wants to harden costs more than the string was costing.
+
+Aegis writes those lines for you. One Artisan command produces the class, a Pest test stub, and the Eloquent cast wiring on a target model. You write the methods that belong to your domain.
 
 ## Requirements
 
@@ -53,9 +59,9 @@ php artisan make:value-object Email \
 
 Generates:
 
-- `app/Domain/ValueObjects/Email.php` — `final readonly`, validated, normalized, `Castable`, `Stringable`, `JsonSerializable`, with an empty `domain(): string` stub for your business logic.
+- `app/Domain/ValueObjects/Email.php` — `final readonly`, validated, normalized, with `Castable`, `Stringable`, `JsonSerializable`, and an empty `domain(): string` stub for you to fill in.
 - `tests/Unit/EmailTest.php` — Pest stub awaiting your assertions.
-- Patches `app/Models/Order.php` to add `'email' => Email::class` to its `casts()` method.
+- `app/Models/Order.php` — patched to add `'email' => Email::class` inside its `casts()` method, preserving the existing indentation.
 
 ### Validate with the same Value Object
 
@@ -97,14 +103,14 @@ $email = $request->valueObject('email'); // an Email instance, already validated
 
 | Flag | Purpose |
 |---|---|
-| `--rule=NAME[:ARGS]` | Curated validation rule. Supported: `email`, `url`, `ip`, `uuid`, `alpha_num`, `alpha`, `numeric`, `regex:PATTERN`. |
-| `--normalize=FN[,FN]` | Composable normalization. Supported: `lower`, `upper`, `trim`. |
-| `--type=PHP_TYPE` | Property PHP type. Default: `string`. Accepts enums and value classes too. |
-| `--method=NAME[:RETURN_TYPE]` | Repeatable. Adds an empty method stub for your domain logic. |
-| `--cast=Model.column` | Adds the cast wiring to `app/Models/Model.php`. Idempotent. |
+| `--rule=NAME[:ARGS]` | Validation rule. One of `email`, `url`, `ip`, `uuid`, `alpha_num`, `alpha`, `numeric`, `regex:PATTERN`. |
+| `--normalize=FN[,FN]` | Normalization. Compose with commas: `lower`, `upper`, `trim`. |
+| `--type=PHP_TYPE` | Property type. Default `string`. Also accepts `int`, `float`, `bool`, or a fully qualified class name. |
+| `--method=NAME[:RETURN_TYPE]` | Empty method stub. Repeatable. |
+| `--cast=Model.column` | Adds the cast wiring to `app/Models/Model.php`. Safe to re-run; the cast is added once. |
 | `--namespace=NS` | Override the configured default namespace. |
 | `--no-test` | Skip the Pest test stub. |
-| `--dry-run` | Print the files that would be written or changed; change nothing. |
+| `--dry-run` | Print the files that would be written or changed without touching disk. |
 | `--force` | Overwrite existing files. |
 
 ## Credits
