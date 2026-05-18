@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HarrisRafto\Aegis;
 
+use HarrisRafto\Aegis\Console\MakeValueObjectCommand;
 use Illuminate\Support\ServiceProvider;
 
 final class AegisServiceProvider extends ServiceProvider
@@ -19,6 +20,10 @@ final class AegisServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/aegis.php' => config_path('aegis.php'),
             ], 'aegis-config');
+
+            $this->commands([
+                MakeValueObjectCommand::class,
+            ]);
         }
     }
 }
