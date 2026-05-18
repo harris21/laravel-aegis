@@ -8,21 +8,11 @@ use HarrisRafto\Aegis\Console\Maps\Normalizers;
 use HarrisRafto\Aegis\Console\Maps\ValidationRules;
 
 /**
- * Builds the full PHP source for a generated Value Object class.
+ * Builds the PHP source for a generated Value Object.
  *
- * Every Value Object Aegis emits follows the same opinionated structure:
- *
- *   - `final readonly` class.
- *   - Single `public {type} $value;` property declared (never constructor-promoted, so
- *     normalization can run inside the constructor body).
- *   - Constructor with `--rule` validation and optional `--normalize` reassignments.
- *   - `equals(self $other): bool` always emitted.
- *   - User-supplied `--method=name[:returnType]` stubs (empty bodies) before the
- *     `__toString` / `jsonSerialize` / `castUsing` block.
- *   - `Stringable` + `JsonSerializable` + `Castable` always implemented.
- *   - The `castUsing()` anonymous class implements `ComparesCastableAttributes` and
- *     emits a `compare()` method *only when `--normalize` is present* — non-trivial
- *     normalization is exactly when dirty-checking needs value-equality semantics.
+ * The property is declared, not constructor-promoted, so normalization can
+ * reassign $value after validation. compare() is emitted only when --normalize
+ * is present, because that is when dirty checking needs value equality.
  */
 final class ValueObjectGenerator
 {
@@ -87,12 +77,8 @@ final readonly class {$this->name} implements Castable, Stringable, JsonSerializ
 PHP;
     }
 
-    // ----------------------------------------------------------------------
-    //  Imports
-    // ----------------------------------------------------------------------
-
     /**
-     * @return list<string>  Sorted, deduplicated fully-qualified class names.
+     * @return list<string>
      */
     private function collectImports(): array
     {
@@ -131,10 +117,6 @@ PHP;
         return implode("\n", array_map(static fn (string $fqcn): string => "use {$fqcn};", $imports));
     }
 
-    // ----------------------------------------------------------------------
-    //  Constructor
-    // ----------------------------------------------------------------------
-
     private function renderConstructor(): string
     {
         $body = [];
@@ -172,10 +154,6 @@ PHP;
 PHP;
     }
 
-    // ----------------------------------------------------------------------
-    //  equals, method stubs
-    // ----------------------------------------------------------------------
-
     private function renderEquals(): string
     {
         return <<<PHP
@@ -207,10 +185,6 @@ PHP;
 
         return implode("\n\n", $rendered)."\n";
     }
-
-    // ----------------------------------------------------------------------
-    //  castUsing
-    // ----------------------------------------------------------------------
 
     private function renderCastUsing(): string
     {
@@ -265,10 +239,6 @@ PHP;
             }
 PHP;
     }
-
-    // ----------------------------------------------------------------------
-    //  Type helpers
-    // ----------------------------------------------------------------------
 
     private function isPrimitive(string $type): bool
     {
