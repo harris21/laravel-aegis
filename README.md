@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <em>[EE-jis]</em>
+</p>
+
+<p align="center">
   Scaffolding and validation helpers for Value Objects.
 </p>
 
