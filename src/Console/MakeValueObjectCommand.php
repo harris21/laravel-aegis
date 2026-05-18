@@ -38,7 +38,7 @@ final class MakeValueObjectCommand extends Command
     public function handle(): int
     {
         try {
-            return $this->run();
+            return $this->scaffold();
         } catch (InvalidArgumentException|RuntimeException $e) {
             $this->components->error($e->getMessage());
 
@@ -46,7 +46,7 @@ final class MakeValueObjectCommand extends Command
         }
     }
 
-    private function run(): int
+    private function scaffold(): int
     {
         $name = $this->resolveName();
         $namespace = $this->resolveNamespace();

@@ -25,12 +25,6 @@ final class CastWirer
     {
         $location = self::locateCastsArray($modelSource);
 
-        $castLine = sprintf(
-            "        '%s' => \\%s::class,",
-            $column,
-            ltrim($valueObjectFqcn, '\\'),
-        );
-
         if (self::columnAlreadyCast($location['body'], $column)) {
             return [
                 'source' => $modelSource,
@@ -39,7 +33,15 @@ final class CastWirer
             ];
         }
 
-        $insertion = self::buildInsertion($location['body'], $castLine);
+        $indent = self::detectIndent($location['body']);
+        $castLine = sprintf(
+            "%s'%s' => \\%s::class,",
+            $indent,
+            $column,
+            ltrim($valueObjectFqcn, '\\'),
+        );
+
+        $insertion = self::buildInsertion($location['body'], $castLine, $indent);
 
         $modified = substr_replace(
             $modelSource,
@@ -90,38 +92,54 @@ final class CastWirer
         return preg_match($pattern, $body) === 1;
     }
 
-    private static function buildInsertion(string $existingBody, string $castLine): string
+    private static function buildInsertion(string $existingBody, string $castLine, string $indent): string
     {
-        // Three layout cases for the existing array:
-        //   1. Empty:           `return [];`            -> body is ""
-        //   2. Single-line:     `return ['a' => 'b'];`  -> body has no leading newline
-        //   3. Multi-line:      `return [\n    ...\n];` -> body starts and ends with \n
-        //
-        // We normalize all three to a multi-line form because that's how every
-        // modern Laravel skeleton ships casts() and it leaves the cleanest diff.
-
         $trimmed = trim($existingBody);
 
         if ($trimmed === '') {
-            return "\n{$castLine}\n    ";
+            $closingIndent = self::reduceIndent($indent);
+
+            return "\n{$castLine}\n{$closingIndent}";
         }
 
-        // If the body already looks multi-line (newlines present), append our line
-        // before whatever trailing whitespace closes it.
         if (str_contains($existingBody, "\n")) {
             $withoutTrailingWhitespace = rtrim($existingBody);
             $trailing = substr($existingBody, strlen($withoutTrailingWhitespace));
-
-            // Ensure existing last entry has a trailing comma so adding our line is safe.
             $withoutTrailingWhitespace = self::ensureTrailingComma($withoutTrailingWhitespace);
 
             return "{$withoutTrailingWhitespace}\n{$castLine}{$trailing}";
         }
 
-        // Single-line array — convert to multi-line so the diff stays clean.
         $existingEntries = self::ensureTrailingComma(trim($existingBody));
+        $closingIndent = self::reduceIndent($indent);
 
-        return "\n        {$existingEntries}\n{$castLine}\n    ";
+        return "\n{$indent}{$existingEntries}\n{$castLine}\n{$closingIndent}";
+    }
+
+    private static function detectIndent(string $body): string
+    {
+        if (preg_match('/\n([ \t]+)\S/', $body, $matches) === 1) {
+            return $matches[1];
+        }
+
+        // Fall back to four spaces of indent past the method body's own indent.
+        // Laravel skeletons land at 12 spaces (3 × 4). Use that as the default.
+        return '            ';
+    }
+
+    private static function reduceIndent(string $indent): string
+    {
+        // The closing `]` of the array sits one indentation level shallower
+        // than its entries. Strip the rightmost four spaces (or one tab).
+        if (str_ends_with($indent, '    ')) {
+            return substr($indent, 0, -4);
+        }
+
+        if (str_ends_with($indent, "\t")) {
+            return substr($indent, 0, -1);
+        }
+
+        return $indent;
     }
 
     private static function ensureTrailingComma(string $entries): string

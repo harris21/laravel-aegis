@@ -148,7 +148,7 @@ PHP;
         $name = strtolower($this->name);
 
         return <<<PHP
-        if (! ({$resolved['check']})) {
+        if ({$resolved['rejectIf']}) {
             throw new InvalidArgumentException("Invalid {$name}: {\$value}");
         }
 PHP;

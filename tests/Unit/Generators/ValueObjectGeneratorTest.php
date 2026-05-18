@@ -20,7 +20,7 @@ it('generates syntactically valid PHP for the canonical Email shape', function (
         ->toContain('namespace HarrisRafto\\Aegis\\Tests\\Generated\\Canonical;')
         ->toContain('final readonly class Email implements Castable, Stringable, JsonSerializable')
         ->toContain('public string $value;')
-        ->toContain('if (! (filter_var($value, FILTER_VALIDATE_EMAIL)))')
+        ->toContain('if (! filter_var($value, FILTER_VALIDATE_EMAIL))')
         ->toContain('$value = mb_strtolower($value);')
         ->toContain('$this->value = $value;')
         ->toContain('public function equals(self $other): bool')
@@ -104,5 +104,5 @@ it('handles regex rules with the user pattern verbatim', function () {
         methods: [],
     ))->generate();
 
-    expect($source)->toContain("preg_match('/^[A-Z0-9]+\$/', \$value)");
+    expect($source)->toContain("preg_match('/^[A-Z0-9]+\$/', \$value) !== 1");
 });
