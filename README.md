@@ -56,7 +56,7 @@ Generates:
 ### Validate with the same Value Object
 
 ```php
-use HarrisRafto\Aegis\Rules\Rule;
+use Illuminate\Validation\Rule;
 
 public function rules(): array
 {
@@ -65,6 +65,8 @@ public function rules(): array
     ];
 }
 ```
+
+Aegis registers `valueObject` as a macro on Laravel's `Illuminate\Validation\Rule`, so the call site reads identically to any other built-in rule (`Rule::in(...)`, `Rule::unique(...)`).
 
 ### Resolve the validated instance from a FormRequest
 
