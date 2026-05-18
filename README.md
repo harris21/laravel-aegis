@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="art/logo.png" width="520" alt="Aegis for Laravel">
+</p>
+
+<p align="center">
   <strong>Aegis for Laravel</strong>
 </p>
 
@@ -7,7 +11,7 @@
 </p>
 
 <p align="center">
-  Wrap your primitives and validate them at the boundary — in one Artisan command.
+  Wrap your primitives and validate them at the boundary in one Artisan command.
 </p>
 
 ---
