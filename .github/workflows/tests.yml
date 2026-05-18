@@ -26,6 +26,7 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: composer:v2
+          ini-values: memory_limit=512M
 
       - name: Cache composer dependencies
         uses: actions/cache@v4
@@ -38,4 +39,4 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run Pest
-        run: vendor/bin/pest --no-coverage --no-progress
+        run: php -d memory_limit=512M vendor/bin/pest --no-coverage --no-progress
