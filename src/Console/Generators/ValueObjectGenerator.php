@@ -34,47 +34,32 @@ final class ValueObjectGenerator
     public function generate(): string
     {
         $imports = $this->collectImports();
-        $useBlock = $this->renderUseBlock($imports);
-        $propertyType = $this->shortType($this->propertyType);
 
-        $constructor = $this->renderConstructor();
-        $equals = $this->renderEquals();
-        $methodStubs = $this->renderMethodStubs();
-        $castUsing = $this->renderCastUsing();
+        $replacements = [
+            '{{ namespace }}' => $this->namespace,
+            '{{ class }}' => $this->name,
+            '{{ propertyType }}' => $this->shortType($this->propertyType),
+            '{{ uses }}' => $this->renderUseBlock($imports),
+            '{{ constructor }}' => $this->renderConstructor(),
+            '{{ equals }}' => $this->renderEquals(),
+            '{{ methodStubs }}' => $this->renderMethodStubs(),
+            '{{ castUsing }}' => $this->renderCastUsing(),
+        ];
 
-        $methodBlock = $methodStubs === '' ? '' : "\n{$methodStubs}";
-
-        return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-namespace {$this->namespace};
-
-{$useBlock}
-
-final readonly class {$this->name} implements Castable, Stringable, JsonSerializable
-{
-    public {$propertyType} \$value;
-
-{$constructor}
-
-{$equals}
-{$methodBlock}
-    public function __toString(): string
-    {
-        return (string) \$this->value;
+        return strtr(self::loadStub('value-object'), $replacements);
     }
 
-    public function jsonSerialize(): mixed
+    public static function loadStub(string $name): string
     {
-        return \$this->value;
-    }
+        if (function_exists('base_path')) {
+            $published = base_path("stubs/aegis.{$name}.stub");
 
-{$castUsing}
-}
+            if (is_file($published)) {
+                return file_get_contents($published);
+            }
+        }
 
-PHP;
+        return file_get_contents(__DIR__.'/../Stubs/'.$name.'.stub');
     }
 
     /**
@@ -183,7 +168,7 @@ PHP;
 PHP;
         }, $this->methods);
 
-        return implode("\n\n", $rendered)."\n";
+        return implode("\n\n", $rendered)."\n\n";
     }
 
     private function renderCastUsing(): string

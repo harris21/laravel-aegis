@@ -50,7 +50,7 @@ final class MakeValueObjectCommand extends Command
     {
         $name = $this->resolveName();
         $namespace = $this->resolveNamespace();
-        $type = (string) $this->option('type');
+        $type = $this->resolveType();
         $rule = $this->resolveRule();
         $normalizers = $this->resolveNormalizers();
         $methods = $this->resolveMethods();
@@ -129,6 +129,27 @@ final class MakeValueObjectCommand extends Command
         return is_string($configured) ? trim($configured, '\\') : 'App\\Domain\\ValueObjects';
     }
 
+    private function resolveType(): string
+    {
+        $type = (string) $this->option('type');
+        $lower = strtolower($type);
+
+        if (in_array($lower, ['string', 'int', 'float', 'bool', 'mixed'], true)) {
+            return $lower;
+        }
+
+        $fqcn = ltrim($type, '\\');
+
+        if (! class_exists($fqcn) && ! interface_exists($fqcn) && ! enum_exists($fqcn)) {
+            throw new InvalidArgumentException(
+                "The --type value '{$type}' is not a PHP primitive (string, int, float, bool, mixed) "
+                ."and the class '{$fqcn}' does not exist."
+            );
+        }
+
+        return $type;
+    }
+
     private function resolveRule(): ?string
     {
         $rule = $this->option('rule');
@@ -193,7 +214,9 @@ final class MakeValueObjectCommand extends Command
 
     private function resolveModelPath(string $model): string
     {
-        return app_path('Models/'.$model.'.php');
+        $relative = str_replace('\\', '/', $model);
+
+        return app_path('Models/'.$relative.'.php');
     }
 
     private function namespaceToPath(string $namespace): string
@@ -254,17 +277,20 @@ final class MakeValueObjectCommand extends Command
     }
 
     /**
-     * @return array{path: string, original: string, modified: string, alreadyPresent: bool, column: string, vo: string}
+     * @return array{path: string, original: string, modified: string, alreadyPresent: bool, manual: bool, snippet: string, column: string, vo: string}
      */
     private function planCast(string $castSpec, string $namespace, string $name): array
     {
-        if (! str_contains($castSpec, '.')) {
+        $lastDot = strrpos($castSpec, '.');
+
+        if ($lastDot === false) {
             throw new InvalidArgumentException(
-                "Invalid --cast value: {$castSpec}. Expected Model.column (e.g. Order.email)."
+                "Invalid --cast value: {$castSpec}. Expected Model.column (e.g. Order.email, Billing/Invoice.total)."
             );
         }
 
-        [$model, $column] = explode('.', $castSpec, 2);
+        $model = substr($castSpec, 0, $lastDot);
+        $column = substr($castSpec, $lastDot + 1);
         $modelPath = $this->resolveModelPath($model);
 
         if (! $this->files->exists($modelPath)) {
@@ -282,6 +308,8 @@ final class MakeValueObjectCommand extends Command
             'original' => $original,
             'modified' => $result['source'],
             'alreadyPresent' => $result['alreadyPresent'],
+            'manual' => $result['manual'],
+            'snippet' => $result['snippet'],
             'column' => $column,
             'vo' => $voFqcn,
         ];
@@ -308,7 +336,7 @@ final class MakeValueObjectCommand extends Command
     }
 
     /**
-     * @param  array{path: string, original: string, modified: string, alreadyPresent: bool, column: string, vo: string}  $plan
+     * @param  array{path: string, original: string, modified: string, alreadyPresent: bool, manual: bool, snippet: string, column: string, vo: string}  $plan
      */
     private function applyCast(array $plan): void
     {
@@ -317,6 +345,17 @@ final class MakeValueObjectCommand extends Command
                 '<fg=yellow>Skipped</>',
                 $this->relative($plan['path']).' (cast already present)',
             );
+
+            return;
+        }
+
+        if ($plan['manual']) {
+            $this->components->twoColumnDetail(
+                '<fg=yellow>Skipped</>',
+                $this->relative($plan['path']).' (could not auto-parse casts() — add manually below)',
+            );
+            $this->newLine();
+            $this->line('    '.$plan['snippet']);
 
             return;
         }
@@ -330,9 +369,9 @@ final class MakeValueObjectCommand extends Command
     }
 
     /**
-     * @param  array{path: string, contents: string, kind: string}                                                                   $voPlan
-     * @param  array{path: string, contents: string, kind: string}|null                                                              $testPlan
-     * @param  array{path: string, original: string, modified: string, alreadyPresent: bool, column: string, vo: string}|null  $castPlan
+     * @param  array{path: string, contents: string, kind: string}                                                                                                  $voPlan
+     * @param  array{path: string, contents: string, kind: string}|null                                                                                             $testPlan
+     * @param  array{path: string, original: string, modified: string, alreadyPresent: bool, manual: bool, snippet: string, column: string, vo: string}|null  $castPlan
      */
     private function reportPlan(array $voPlan, ?array $testPlan, ?array $castPlan): void
     {
@@ -345,9 +384,13 @@ final class MakeValueObjectCommand extends Command
         }
 
         if ($castPlan !== null) {
-            $label = $castPlan['alreadyPresent']
-                ? '<fg=yellow>Would skip (already cast)</>'
-                : '<fg=blue>Would update</>';
+            if ($castPlan['alreadyPresent']) {
+                $label = '<fg=yellow>Would skip (already cast)</>';
+            } elseif ($castPlan['manual']) {
+                $label = '<fg=yellow>Would print snippet (no auto-edit)</>';
+            } else {
+                $label = '<fg=blue>Would update</>';
+            }
 
             $this->components->twoColumnDetail(
                 $label,

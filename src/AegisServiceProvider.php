@@ -26,7 +26,12 @@ final class AegisServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/aegis.php' => config_path('aegis.php'),
-            ], 'aegis-config');
+            ], ['aegis', 'aegis-config']);
+
+            $this->publishes([
+                __DIR__.'/Console/Stubs/value-object.stub' => base_path('stubs/aegis.value-object.stub'),
+                __DIR__.'/Console/Stubs/value-object-test.stub' => base_path('stubs/aegis.value-object-test.stub'),
+            ], ['aegis', 'aegis-stubs']);
 
             $this->commands([
                 MakeValueObjectCommand::class,

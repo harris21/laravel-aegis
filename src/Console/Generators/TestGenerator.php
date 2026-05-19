@@ -20,17 +20,9 @@ final class TestGenerator
 
     public function generate(): string
     {
-        $fqcn = $this->namespace.'\\'.$this->name;
-
-        return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use {$fqcn};
-
-it('{$this->name}')->todo();
-
-PHP;
+        return strtr(ValueObjectGenerator::loadStub('value-object-test'), [
+            '{{ namespace }}' => $this->namespace,
+            '{{ class }}' => $this->name,
+        ]);
     }
 }

@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ uses }}
+
+final readonly class {{ class }} implements Castable, Stringable, JsonSerializable
+{
+    public {{ propertyType }} $value;
+
+{{ constructor }}
+
+{{ equals }}
+
+{{ methodStubs }}    public function __toString(): string
+    {
+        return (string) $this->value;
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->value;
+    }
+
+{{ castUsing }}
+}

@@ -74,7 +74,7 @@ PHP;
     expect($result['source'])->toBe($source);
 });
 
-it('throws when the model has no casts() method', function () {
+it('returns a manual fallback when the model has no casts() method', function () {
     $source = <<<'PHP'
 <?php
 
@@ -86,8 +86,12 @@ class Order
 }
 PHP;
 
-    expect(fn () => CastWirer::wire($source, 'email', 'App\\Domain\\ValueObjects\\Email'))
-        ->toThrow(RuntimeException::class);
+    $result = CastWirer::wire($source, 'email', 'App\\Domain\\ValueObjects\\Email');
+
+    expect($result['manual'])->toBeTrue();
+    expect($result['modified'])->toBeFalse();
+    expect($result['source'])->toBe($source);
+    expect($result['snippet'])->toBe("'email' => \\App\\Domain\\ValueObjects\\Email::class,");
 });
 
 it('adds a trailing comma to the previous last entry when missing', function () {

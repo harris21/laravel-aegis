@@ -4,42 +4,50 @@ declare(strict_types=1);
 
 namespace HarrisRafto\Aegis\Console\Generators;
 
-use RuntimeException;
-
 /**
  * Inserts a single cast entry into a Laravel model's `casts()` method.
  *
- * Scope (v0.1):
- *   - Targets the modern `protected function casts(): array { return [ ... ]; }` shape.
- *   - Idempotent: returns the source unchanged if the column is already cast.
- *   - Throws on shapes we can't safely modify (no casts() method, parent::casts() merges,
- *     non-array returns). The caller is expected to catch and fall back to printing the
- *     snippet for the user to paste manually.
+ * Targets the modern `protected function casts(): array { return [ ... ]; }`
+ * shape. When the model uses a shape we can't safely modify (no casts()
+ * method, parent::casts() merges, anything dynamic), the wirer returns a
+ * `manual: true` result with the exact snippet to paste — never throws.
+ * The caller surfaces that snippet to the user so the VO and test files
+ * still get written and the human handles the model edit.
  */
 final class CastWirer
 {
     /**
-     * @return array{source: string, modified: bool, alreadyPresent: bool}
+     * @return array{source: string, modified: bool, alreadyPresent: bool, manual: bool, snippet: string}
      */
     public static function wire(string $modelSource, string $column, string $valueObjectFqcn): array
     {
+        $fqcn = ltrim($valueObjectFqcn, '\\');
+        $snippet = sprintf("'%s' => \\%s::class,", $column, $fqcn);
+
         $location = self::locateCastsArray($modelSource);
+
+        if ($location === null) {
+            return [
+                'source' => $modelSource,
+                'modified' => false,
+                'alreadyPresent' => false,
+                'manual' => true,
+                'snippet' => $snippet,
+            ];
+        }
 
         if (self::columnAlreadyCast($location['body'], $column)) {
             return [
                 'source' => $modelSource,
                 'modified' => false,
                 'alreadyPresent' => true,
+                'manual' => false,
+                'snippet' => $snippet,
             ];
         }
 
         $indent = self::detectIndent($location['body']);
-        $castLine = sprintf(
-            "%s'%s' => \\%s::class,",
-            $indent,
-            $column,
-            ltrim($valueObjectFqcn, '\\'),
-        );
+        $castLine = sprintf("%s'%s' => \\%s::class,", $indent, $column, $fqcn);
 
         $insertion = self::buildInsertion($location['body'], $castLine, $indent);
 
@@ -54,23 +62,20 @@ final class CastWirer
             'source' => $modified,
             'modified' => true,
             'alreadyPresent' => false,
+            'manual' => false,
+            'snippet' => $snippet,
         ];
     }
 
     /**
-     * @return array{start: int, length: int, body: string}
+     * @return array{start: int, length: int, body: string}|null
      */
-    private static function locateCastsArray(string $source): array
+    private static function locateCastsArray(string $source): ?array
     {
-        // Match: `protected function casts(): array` then the first `return [ ... ];`
-        // that follows it, capturing the body between the brackets.
         $pattern = '/protected\s+function\s+casts\s*\(\s*\)\s*:\s*array\s*\{[^}]*?return\s*\[(?P<body>[^]]*)\]\s*;/s';
 
         if (preg_match($pattern, $source, $matches, PREG_OFFSET_CAPTURE) !== 1) {
-            throw new RuntimeException(
-                "Could not locate a `casts(): array` method that returns an array literal. "
-                ."Aegis only wires casts into models with the standard `return [ ... ];` shape."
-            );
+            return null;
         }
 
         $body = $matches['body'][0];
