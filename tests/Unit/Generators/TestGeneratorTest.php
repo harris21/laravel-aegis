@@ -8,8 +8,8 @@ it('generates a Pest stub by default', function () {
     $source = (new TestGenerator('Email', 'App\\Domain\\ValueObjects'))->generate();
 
     expect($source)
-        ->toContain('use App\\Domain\\ValueObjects\\Email;')
         ->toContain("it('Email')->todo();")
+        ->not->toContain('use App\\Domain\\ValueObjects')
         ->not->toContain('class EmailTest')
         ->not->toContain('PHPUnit\\Framework\\TestCase');
 });
@@ -19,12 +19,12 @@ it('generates a PHPUnit stub when usePest is false', function () {
 
     expect($source)
         ->toContain('namespace Tests\\Unit;')
-        ->toContain('use App\\Domain\\ValueObjects\\Email;')
         ->toContain('use PHPUnit\\Framework\\TestCase;')
         ->toContain('class EmailTest extends TestCase')
         ->toContain('public function testItIsPending(): void')
         ->toContain('$this->markTestIncomplete(')
-        ->not->toContain("it('");
+        ->not->toContain("it('")
+        ->not->toContain('use App\\Domain\\ValueObjects');
 });
 
 it('passes the Value Object class name through both stubs', function () {
