@@ -94,6 +94,46 @@ PHP;
     expect($result['snippet'])->toBe("'email' => \\App\\Domain\\ValueObjects\\Email::class,");
 });
 
+it('keeps a single-line casts() method single-line', function () {
+    $source = <<<'PHP'
+<?php
+
+namespace App\Models;
+
+class Order extends Model
+{
+    protected function casts(): array { return ['created_at' => 'datetime']; }
+}
+PHP;
+
+    $result = CastWirer::wire($source, 'email', 'App\\Domain\\ValueObjects\\Email');
+
+    expect($result['modified'])->toBeTrue();
+    expect($result['source'])->toContain(
+        "return ['created_at' => 'datetime', 'email' => \\App\\Domain\\ValueObjects\\Email::class,];"
+    );
+});
+
+it('keeps an empty single-line casts() method single-line', function () {
+    $source = <<<'PHP'
+<?php
+
+namespace App\Models;
+
+class Order extends Model
+{
+    protected function casts(): array { return []; }
+}
+PHP;
+
+    $result = CastWirer::wire($source, 'email', 'App\\Domain\\ValueObjects\\Email');
+
+    expect($result['modified'])->toBeTrue();
+    expect($result['source'])->toContain(
+        "return ['email' => \\App\\Domain\\ValueObjects\\Email::class,];"
+    );
+});
+
 it('adds a trailing comma to the previous last entry when missing', function () {
     $source = <<<'PHP'
 <?php

@@ -100,14 +100,19 @@ final class CastWirer
     private static function buildInsertion(string $existingBody, string $castLine, string $indent): string
     {
         $trimmed = trim($existingBody);
+        $hasNewline = str_contains($existingBody, "\n");
 
         if ($trimmed === '') {
-            $closingIndent = self::reduceIndent($indent);
+            if ($hasNewline) {
+                $closingIndent = self::reduceIndent($indent);
 
-            return "\n{$castLine}\n{$closingIndent}";
+                return "\n{$castLine}\n{$closingIndent}";
+            }
+
+            return ltrim($castLine);
         }
 
-        if (str_contains($existingBody, "\n")) {
+        if ($hasNewline) {
             $withoutTrailingWhitespace = rtrim($existingBody);
             $trailing = substr($existingBody, strlen($withoutTrailingWhitespace));
             $withoutTrailingWhitespace = self::ensureTrailingComma($withoutTrailingWhitespace);
@@ -115,10 +120,8 @@ final class CastWirer
             return "{$withoutTrailingWhitespace}\n{$castLine}{$trailing}";
         }
 
-        $existingEntries = self::ensureTrailingComma(trim($existingBody));
-        $closingIndent = self::reduceIndent($indent);
-
-        return "\n{$indent}{$existingEntries}\n{$castLine}\n{$closingIndent}";
+        // Single-line body with entries — keep it single-line; append inline.
+        return self::ensureTrailingComma($trimmed).' '.ltrim($castLine);
     }
 
     private static function detectIndent(string $body): string
