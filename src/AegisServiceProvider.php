@@ -31,6 +31,7 @@ final class AegisServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/Console/Stubs/value-object.stub' => base_path('stubs/aegis.value-object.stub'),
                 __DIR__.'/Console/Stubs/value-object-test.stub' => base_path('stubs/aegis.value-object-test.stub'),
+                __DIR__.'/Console/Stubs/value-object-test-phpunit.stub' => base_path('stubs/aegis.value-object-test-phpunit.stub'),
             ], ['aegis', 'aegis-stubs']);
 
             $this->commands([

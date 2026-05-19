@@ -270,10 +270,20 @@ final class MakeValueObjectCommand extends Command
      */
     private function planTestWrite(string $name, string $namespace): array
     {
-        $testSource = (new TestGenerator($name, $namespace))->generate();
+        $usePest = $this->projectUsesPest();
+        $testSource = (new TestGenerator($name, $namespace, $usePest))->generate();
         $testPath = $this->resolveTestPath($name);
 
         return $this->planFileWrite($testPath, $testSource);
+    }
+
+    private function projectUsesPest(): bool
+    {
+        if (! function_exists('base_path')) {
+            return true;
+        }
+
+        return is_dir(base_path('vendor/pestphp/pest'));
     }
 
     /**

@@ -5,22 +5,26 @@ declare(strict_types=1);
 namespace HarrisRafto\Aegis\Console\Generators;
 
 /**
- * Generates the Pest test stub for a scaffolded Value Object.
+ * Generates a test stub for a scaffolded Value Object.
  *
- * Per design: one `it(...)->todo();` per generated file. The user fills
- * in their own assertions; Aegis only names the file and points at the
- * Value Object it should exercise.
+ * Pest gets `it(...)->todo();` — one pending assertion per generated file.
+ * PHPUnit gets a `markTestIncomplete()` method on a TestCase subclass.
+ * The caller decides which by passing $usePest; the command auto-detects
+ * by checking for `vendor/pestphp/pest` in the consuming project.
  */
 final class TestGenerator
 {
     public function __construct(
         private readonly string $name,
         private readonly string $namespace,
+        private readonly bool $usePest = true,
     ) {}
 
     public function generate(): string
     {
-        return strtr(ValueObjectGenerator::loadStub('value-object-test'), [
+        $stubName = $this->usePest ? 'value-object-test' : 'value-object-test-phpunit';
+
+        return strtr(ValueObjectGenerator::loadStub($stubName), [
             '{{ namespace }}' => $this->namespace,
             '{{ class }}' => $this->name,
         ]);

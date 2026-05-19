@@ -68,7 +68,7 @@ php artisan make:value-object Email \
 Generates:
 
 - `app/Domain/ValueObjects/Email.php` — `final readonly`, validated, normalized, with the Castable block wired for Eloquent. Implements `Stringable` and `JsonSerializable` for the application edges. Contains an empty `domain(): string` stub for you to fill in.
-- `tests/Unit/EmailTest.php` — Pest stub awaiting your assertions.
+- `tests/Unit/EmailTest.php` — test stub awaiting your assertions. Aegis emits a Pest `it()->todo()` when `pestphp/pest` is in your `vendor/`, and a PHPUnit `markTestIncomplete()` TestCase otherwise.
 - `app/Models/Order.php` — patched to add `'email' => Email::class` inside its `casts()` method, preserving the existing indentation.
 
 ### Validate with the same Value Object
