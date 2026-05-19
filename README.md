@@ -30,6 +30,10 @@ The catch: a Value Object that does its job is around 70 lines of PHP. `final re
 
 Aegis writes those lines for you. One Artisan command produces the Value Object class with everything wired up, plus a Pest test stub. If you pass `--cast=Model.column`, it also patches the model. You write the methods that belong to your domain.
 
+## About the name
+
+In Greek mythology the *aegis* was Athena's shield, carried into battle to deflect what shouldn't reach what it protected. The package borrows the name because that's what the constructor of a Value Object does: accepts what's valid and refuses everything else.
+
 ## Requirements
 
 - PHP 8.3+
@@ -102,6 +106,27 @@ class StoreUserRequest extends FormRequest
 // In your controller:
 $email = $request->valueObject('email'); // an Email instance, already validated
 ```
+
+### Scan your codebase for Value Object candidates
+
+```bash
+php artisan vo:scan
+```
+
+Aegis walks your Eloquent models and migrations, flags column names that match common patterns (email, url, uuid, country_code, slug, ip, status, money), and prints the `make:value-object` command you'd run for each one. A final line tells you how much of your codebase is already wrapped:
+
+```
+app/Models/Customer.php
+  · billing_email   → php artisan make:value-object Email --rule=email --normalize=lower --cast=Customer.billing_email
+  · country_code    → php artisan make:value-object CountryCode --rule=regex:/^[A-Z]{2}$/ --normalize=upper --cast=Customer.country_code
+  · monthly_amount_cents  candidate — Money column, see cknow/laravel-money
+
+Scanned 3 models, 16 columns total.
+7 commands ready, 2 candidates need your input, 1 already wrapped.
+Value Object coverage: 6%.
+```
+
+The scanner reads model `$fillable`, `$casts`, and `casts()` declarations, plus any `Schema::create` blocks in your migrations. It never touches your database. Pass `--json` for machine-readable output, `--no-cast` to omit the `--cast=Model.column` part of each suggestion, or `--path` and `--migrations-path` to point at non-standard directories.
 
 ## Flags
 

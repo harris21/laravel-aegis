@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace HarrisRafto\Aegis;
 
 use HarrisRafto\Aegis\Console\MakeValueObjectCommand;
+use HarrisRafto\Aegis\Console\ScanCommand;
 use HarrisRafto\Aegis\Rules\ValueObjectRule;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rule;
@@ -29,6 +30,7 @@ final class AegisServiceProvider extends ServiceProvider
 
             $this->commands([
                 MakeValueObjectCommand::class,
+                ScanCommand::class,
             ]);
         }
     }
