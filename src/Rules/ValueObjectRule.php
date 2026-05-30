@@ -35,6 +35,12 @@ final class ValueObjectRule implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        if (! is_scalar($value)) {
+            $fail("The {$attribute} field must be a scalar value.");
+
+            return;
+        }
+
         try {
             new ($this->valueObjectClass)($value);
         } catch (Throwable $e) {
