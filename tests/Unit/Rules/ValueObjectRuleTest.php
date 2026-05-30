@@ -55,3 +55,30 @@ it('exposes the Value Object class on the rule instance', function () {
 
     expect($rule->valueObjectClass)->toBe(FakeEmail::class);
 });
+
+it('fails with a scalar message when a non-scalar value is passed', function () {
+    $rule = new ValueObjectRule(FakeEmail::class);
+
+    $message = null;
+    $fail = function (string $msg) use (&$message) {
+        $message = $msg;
+    };
+
+    $rule->validate('email', ['not', 'a', 'string'], $fail);
+
+    expect($message)->toBe('The email field must be a scalar value.');
+});
+
+it('forwards integer scalar to the Value Object constructor rather than blocking it early', function () {
+    $rule = new ValueObjectRule(FakeEmail::class);
+
+    $message = null;
+    $fail = function (string $msg) use (&$message) {
+        $message = $msg;
+    };
+
+    $rule->validate('email', 42, $fail);
+
+    expect($message)->not->toBe('The email field must be a scalar value.')
+        ->not->toBeNull();
+});
