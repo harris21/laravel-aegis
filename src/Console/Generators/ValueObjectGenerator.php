@@ -19,8 +19,8 @@ final class ValueObjectGenerator
     private const PRIMITIVE_TYPES = ['string', 'int', 'float', 'bool', 'mixed'];
 
     /**
-     * @param  list<string>                              $normalizers  e.g. ['trim', 'lower']
-     * @param  list<array{name: string, return: ?string}> $methods      user-defined --method stubs
+     * @param  list<string>  $normalizers  e.g. ['trim', 'lower']
+     * @param  list<array{name: string, return: ?string}>  $methods  user-defined --method stubs
      */
     public function __construct(
         private readonly string $name,
@@ -141,10 +141,10 @@ PHP;
 
     private function renderEquals(): string
     {
-        return <<<PHP
-    public function equals(self \$other): bool
+        return <<<'PHP'
+    public function equals(self $other): bool
     {
-        return \$this->value === \$other->value;
+        return $this->value === $other->value;
     }
 PHP;
     }

@@ -25,7 +25,7 @@ class User extends Model
 }
 PHP);
 
-    $report = (new Scanner(new Filesystem()))->scan($root.'/models', $root.'/migrations');
+    $report = (new Scanner(new Filesystem))->scan($root.'/models', $root.'/migrations');
 
     expect($report['stats']['modelCount'])->toBe(1);
     expect($report['stats']['suggestionCount'])->toBe(2); // email + country_code
@@ -58,7 +58,7 @@ Schema::create('orders', function (Blueprint $table) {
 });
 PHP);
 
-    $report = (new Scanner(new Filesystem()))->scan($root.'/models', $root.'/migrations');
+    $report = (new Scanner(new Filesystem))->scan($root.'/models', $root.'/migrations');
 
     $orderColumns = $report['models'][0]['columns'];
     expect($orderColumns)->toContain('email')
@@ -93,7 +93,7 @@ class User extends Model
 }
 PHP);
 
-    $report = (new Scanner(new Filesystem()))->scan($root.'/models', null);
+    $report = (new Scanner(new Filesystem))->scan($root.'/models', null);
 
     expect($report['stats']['wrappedCount'])->toBe(1);
     expect($report['models'][0]['wrapped'])->toContain('email');
@@ -119,7 +119,7 @@ Schema::create('order_items', function (Blueprint $table) {
 });
 PHP);
 
-    $report = (new Scanner(new Filesystem()))->scan($root.'/models', $root.'/migrations');
+    $report = (new Scanner(new Filesystem))->scan($root.'/models', $root.'/migrations');
 
     expect($report['models'][0]['table'])->toBe('order_items');
     expect($report['models'][0]['columns'])->toContain('product_email');

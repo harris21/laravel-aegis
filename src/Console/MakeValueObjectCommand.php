@@ -235,7 +235,7 @@ final class MakeValueObjectCommand extends Command
 
         throw new InvalidArgumentException(
             "Cannot derive a file path from namespace '{$namespace}'. "
-            ."Set `path` in config/aegis.php or pass --namespace=App\\..."
+            .'Set `path` in config/aegis.php or pass --namespace=App\\...'
         );
     }
 
@@ -379,8 +379,8 @@ final class MakeValueObjectCommand extends Command
     }
 
     /**
-     * @param  array{path: string, contents: string, kind: string}                                                                                                  $voPlan
-     * @param  array{path: string, contents: string, kind: string}|null                                                                                             $testPlan
+     * @param  array{path: string, contents: string, kind: string}  $voPlan
+     * @param  array{path: string, contents: string, kind: string}|null  $testPlan
      * @param  array{path: string, original: string, modified: string, alreadyPresent: bool, manual: bool, snippet: string, column: string, vo: string}|null  $castPlan
      */
     private function reportPlan(array $voPlan, ?array $testPlan, ?array $castPlan): void

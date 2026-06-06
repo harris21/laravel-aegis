@@ -54,7 +54,7 @@ trait ResolvesValueObjects
         if (! is_array($rules) || ! array_key_exists($key, $rules)) {
             throw new InvalidArgumentException(
                 "No rules defined for key '{$key}'. ".
-                "ResolvesValueObjects requires the field to be declared in rules()."
+                'ResolvesValueObjects requires the field to be declared in rules().'
             );
         }
 

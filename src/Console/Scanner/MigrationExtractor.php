@@ -27,7 +27,7 @@ final class MigrationExtractor
     ];
 
     /**
-     * @return array<string, list<string>>  table name => unique column names
+     * @return array<string, list<string>> table name => unique column names
      */
     public static function fromSource(string $source): array
     {
