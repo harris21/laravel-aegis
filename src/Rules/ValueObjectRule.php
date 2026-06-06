@@ -48,7 +48,7 @@ final class ValueObjectRule implements ValidationRule
         }
     }
 
-    private function resolveMessage(mixed $value, Throwable $exception, string $default = ''): string
+    private function resolveMessage(mixed $value, Throwable $exception, ?string $default = null): string
     {
         if (method_exists($this->valueObjectClass, 'validationMessage')) {
             /** @var callable(string, Throwable): string $callable */
@@ -57,6 +57,6 @@ final class ValueObjectRule implements ValidationRule
             return $callable(is_scalar($value) ? (string) $value : '', $exception);
         }
 
-        return $default !== '' ? $default : $exception->getMessage();
+        return $default ?? $exception->getMessage();
     }
 }
