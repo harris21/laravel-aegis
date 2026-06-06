@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use InvalidArgumentException;
 use Throwable;
+use TypeError;
 
 /**
  * Treats any Value Object class as a Laravel validation rule.
@@ -37,12 +38,17 @@ final class ValueObjectRule implements ValidationRule
     {
         try {
             new ($this->valueObjectClass)($value);
+        } catch (TypeError $e) {
+            // Wrong type supplied (e.g. array passed to a scalar-backed VO).
+            // Fall back to a generic message so the raw TypeError is not leaked to the user.
+            $fail($this->resolveMessage($value, $e, 'The :attribute field is invalid.'));
         } catch (Throwable $e) {
+            // Surface the VO's own message (or its validationMessage() override).
             $fail($this->resolveMessage($value, $e));
         }
     }
 
-    private function resolveMessage(mixed $value, Throwable $exception): string
+    private function resolveMessage(mixed $value, Throwable $exception, ?string $default = null): string
     {
         if (method_exists($this->valueObjectClass, 'validationMessage')) {
             /** @var callable(string, Throwable): string $callable */
@@ -51,6 +57,6 @@ final class ValueObjectRule implements ValidationRule
             return $callable(is_scalar($value) ? (string) $value : '', $exception);
         }
 
-        return $exception->getMessage();
+        return $default ?? $exception->getMessage();
     }
 }
