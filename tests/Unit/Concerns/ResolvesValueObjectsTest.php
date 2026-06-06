@@ -3,10 +3,8 @@
 declare(strict_types=1);
 
 use HarrisRafto\Aegis\Concerns\ResolvesValueObjects;
-use HarrisRafto\Aegis\Rules\ValueObjectRule;
 use HarrisRafto\Aegis\Tests\Fixtures\FakeEmail;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**

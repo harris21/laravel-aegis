@@ -17,7 +17,7 @@ final class ColumnMatcher
     /**
      * @return array{vo: string, flags: array<string,string>}|array{candidate: true, note: string}|null
      */
-    public static function match(string $column): array|null
+    public static function match(string $column): ?array
     {
         $lower = strtolower($column);
 
