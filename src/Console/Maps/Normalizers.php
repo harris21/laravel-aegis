@@ -17,7 +17,7 @@ final class Normalizers
 {
     /**
      * @param  list<string>  $normalizers
-     * @return list<string>  Lines like "$value = mb_strtolower($value);", in order.
+     * @return list<string> Lines like "$value = mb_strtolower($value);", in order.
      */
     public static function resolveAll(array $normalizers): array
     {

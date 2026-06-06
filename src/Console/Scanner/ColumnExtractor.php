@@ -82,7 +82,7 @@ final class ColumnExtractor
     }
 
     /**
-     * @return array<string,string>  column name => cast value (raw token text)
+     * @return array<string,string> column name => cast value (raw token text)
      */
     private static function extractCasts(string $source): array
     {
