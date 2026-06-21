@@ -108,6 +108,53 @@ PHP);
     rmdir($root);
 });
 
+it('scans multiple model and migration directories and merges the report', function () {
+    $root = sys_get_temp_dir().'/aegis-scanner-multi-'.uniqid();
+    mkdir($root.'/Blog/models', 0777, true);
+    mkdir($root.'/Blog/migrations', 0777, true);
+    mkdir($root.'/Shop/models', 0777, true);
+    mkdir($root.'/Shop/migrations', 0777, true);
+
+    file_put_contents($root.'/Blog/models/Post.php', '<?php class Post extends Model { protected $fillable = ["author_email"]; }');
+    file_put_contents($root.'/Shop/models/Order.php', '<?php class Order extends Model { protected $table = "orders"; }');
+    file_put_contents($root.'/Shop/migrations/create_orders.php', <<<'PHP'
+<?php
+Schema::create('orders', function (Blueprint $table) {
+    $table->string('billing_email');
+});
+PHP);
+
+    $report = (new Scanner(new Filesystem))->scan(
+        [$root.'/Blog/models', $root.'/Shop/models'],
+        [$root.'/Blog/migrations', $root.'/Shop/migrations'],
+    );
+
+    expect($report['stats']['modelCount'])->toBe(2);
+
+    $classes = array_map(fn ($m) => $m['class'], $report['models']);
+    expect($classes)->toContain('Post')->toContain('Order');
+
+    $order = collect($report['models'])->firstWhere('class', 'Order');
+    expect($order['columns'])->toContain('billing_email'); // unioned from Shop's migration by table name
+
+    aegisRemoveDir($root);
+});
+
+it('still accepts a single string path for backward compatibility', function () {
+    $root = aegisScannerWorkspace();
+    file_put_contents($root.'/models/User.php', '<?php class User extends Model { protected $fillable = ["email"]; }');
+
+    $report = (new Scanner(new Filesystem))->scan($root.'/models');
+
+    expect($report['stats']['modelCount'])->toBe(1);
+    expect($report['models'][0]['class'])->toBe('User');
+
+    array_map('unlink', glob($root.'/models/*.php'));
+    rmdir($root.'/models');
+    rmdir($root.'/migrations');
+    rmdir($root);
+});
+
 it('derives the table name from the class name when $table is absent', function () {
     $root = aegisScannerWorkspace();
 

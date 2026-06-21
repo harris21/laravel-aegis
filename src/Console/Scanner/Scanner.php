@@ -19,6 +19,8 @@ final class Scanner
     public function __construct(private readonly Filesystem $files) {}
 
     /**
+     * @param  string|list<string>  $modelPaths  one models directory, or a list of them
+     * @param  string|list<string>|null  $migrationPaths  migration directories to union by table name; null/'' to skip
      * @return array{
      *   models: list<array{
      *     class: string,
@@ -40,12 +42,24 @@ final class Scanner
      *   },
      * }
      */
-    public function scan(string $modelsPath, ?string $migrationsPath = null): array
+    public function scan(string|array $modelPaths, string|array|null $migrationPaths = null): array
     {
-        $models = $this->collectModels($modelsPath);
-        $migrationTables = $migrationsPath !== null
-            ? $this->collectMigrationTables($migrationsPath)
-            : [];
+        $models = [];
+
+        foreach ($this->normalizePaths($modelPaths) as $path) {
+            $models = [...$models, ...$this->collectModels($path)];
+        }
+
+        $migrationTables = [];
+
+        foreach ($this->normalizePaths($migrationPaths) as $path) {
+            foreach ($this->collectMigrationTables($path) as $tableName => $columns) {
+                $migrationTables[$tableName] = array_values(array_unique([
+                    ...($migrationTables[$tableName] ?? []),
+                    ...$columns,
+                ]));
+            }
+        }
 
         $report = [];
         $modelCount = 0;
@@ -106,6 +120,18 @@ final class Scanner
                 'wrappedCount' => $wrappedCount,
             ],
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function normalizePaths(string|array|null $paths): array
+    {
+        if ($paths === null || $paths === '') {
+            return [];
+        }
+
+        return is_array($paths) ? array_values($paths) : [$paths];
     }
 
     /**
