@@ -123,6 +123,7 @@ final class Scanner
     }
 
     /**
+     * @param  string|list<string>|null  $paths
      * @return list<string>
      */
     private function normalizePaths(string|array|null $paths): array
@@ -131,7 +132,7 @@ final class Scanner
             return [];
         }
 
-        return is_array($paths) ? array_values($paths) : [$paths];
+        return is_array($paths) ? $paths : [$paths];
     }
 
     /**

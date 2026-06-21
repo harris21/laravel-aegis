@@ -19,7 +19,7 @@ final class AegisServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Rule::macro('valueObject', static function (string $valueObjectClass): ValueObjectRule {
+        Rule::macro('valueObject', function (string $valueObjectClass): ValueObjectRule {
             return new ValueObjectRule($valueObjectClass);
         });
 

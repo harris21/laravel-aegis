@@ -59,7 +59,7 @@ final class MigrationExtractor
         $i = $start;
         $length = strlen($source);
 
-        while ($i < $length && $depth > 0) {
+        while ($i < $length) {
             $char = $source[$i];
 
             if ($char === '{') {

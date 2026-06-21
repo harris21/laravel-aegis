@@ -176,8 +176,7 @@ final class MakeValueObjectCommand extends Command
      */
     private function resolveMethods(): array
     {
-        $raw = $this->option('method');
-        $methods = is_array($raw) ? $raw : [];
+        $methods = array_filter($this->option('method'), 'is_string');
 
         return array_values(array_map(static function (string $spec): array {
             $spec = trim($spec);

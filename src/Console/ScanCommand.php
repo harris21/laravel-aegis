@@ -34,7 +34,7 @@ final class ScanCommand extends Command
         $report = (new Scanner($this->files))->scan($modelPaths, $migrationPaths);
 
         if ($this->option('json') === true) {
-            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 
             return self::SUCCESS;
         }
@@ -74,7 +74,7 @@ final class ScanCommand extends Command
     }
 
     /**
-     * @param  array{models: list<array{class: string, table: string, file: string, columns: list<string>, suggestions: list<array{column: string, result: array<string,mixed>}>, wrapped: list<string>}>, stats: array{modelCount: int, columnCount: int, suggestionCount: int, candidateCount: int, wrappedCount: int}}  $report
+     * @param  array{models: list<array{class: string, table: string, file: string, columns: list<string>, suggestions: list<array{column: string, result: array{vo: string, flags: array<string, string>}|array{candidate: true, note: string}}>, wrapped: list<string>}>, stats: array{modelCount: int, columnCount: int, suggestionCount: int, candidateCount: int, wrappedCount: int}}  $report
      */
     private function renderText(array $report): void
     {
@@ -98,7 +98,7 @@ final class ScanCommand extends Command
     }
 
     /**
-     * @param  array{column: string, result: array<string,mixed>}  $suggestion
+     * @param  array{column: string, result: array{vo: string, flags: array<string, string>}|array{candidate: true, note: string}}  $suggestion
      */
     private function formatSuggestion(string $modelClass, array $suggestion, bool $omitCast): string
     {

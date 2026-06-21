@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace HarrisRafto\Aegis\Concerns;
 
 use HarrisRafto\Aegis\Rules\ValueObjectRule;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 
@@ -20,6 +21,8 @@ use InvalidArgumentException;
  *
  * If the field is nullable and missing/null in validated input, the trait
  * returns `null`.
+ *
+ * @phpstan-require-extends FormRequest
  */
 trait ResolvesValueObjects
 {

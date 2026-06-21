@@ -6,6 +6,7 @@ namespace HarrisRafto\Aegis\Console\Generators;
 
 use HarrisRafto\Aegis\Console\Maps\Normalizers;
 use HarrisRafto\Aegis\Console\Maps\ValidationRules;
+use RuntimeException;
 
 /**
  * Builds the PHP source for a generated Value Object.
@@ -55,11 +56,22 @@ final class ValueObjectGenerator
             $published = base_path("stubs/aegis.{$name}.stub");
 
             if (is_file($published)) {
-                return file_get_contents($published);
+                return self::readStub($published);
             }
         }
 
-        return file_get_contents(__DIR__.'/../Stubs/'.$name.'.stub');
+        return self::readStub(__DIR__.'/../Stubs/'.$name.'.stub');
+    }
+
+    private static function readStub(string $path): string
+    {
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            throw new RuntimeException("Unable to read Value Object stub at {$path}.");
+        }
+
+        return $contents;
     }
 
     /**

@@ -8,6 +8,7 @@ use InvalidArgumentException;
 
 final readonly class FakeNonScalarValue
 {
+    /** @var array<array-key, mixed> */
     public array $items;
 
     public function __construct(mixed $value)

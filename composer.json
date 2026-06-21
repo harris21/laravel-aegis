@@ -25,6 +25,7 @@
         "illuminate/validation": "^13.0"
     },
     "require-dev": {
+        "larastan/larastan": "^3.10",
         "laravel/pint": "^1.0",
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.0"
@@ -38,6 +39,9 @@
         "psr-4": {
             "HarrisRafto\\Aegis\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "analyse": "phpstan analyse --memory-limit=1G"
     },
     "extra": {
         "laravel": {
