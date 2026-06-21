@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HarrisRafto\Aegis\Console;
 
+use HarrisRafto\Aegis\Console\Scanner\ModulePaths;
 use HarrisRafto\Aegis\Console\Scanner\Scanner;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -14,6 +15,7 @@ final class ScanCommand extends Command
     protected $signature = 'vo:scan
                             {--path=app/Models : Directory of Eloquent models to walk}
                             {--migrations-path=database/migrations : Directory of migrations to walk; empty to skip}
+                            {--no-modules : Skip auto-detected nwidart/laravel-modules directories}
                             {--no-cast : Omit --cast=Model.column from each suggestion}
                             {--json : Output the report as JSON instead of formatted text}';
 
@@ -27,11 +29,20 @@ final class ScanCommand extends Command
 
     public function handle(): int
     {
-        $modelsPath = $this->resolvePath((string) $this->option('path'));
-        $migrationsRaw = (string) $this->option('migrations-path');
-        $migrationsPath = $migrationsRaw === '' ? null : $this->resolvePath($migrationsRaw);
+        $pathOption = (string) $this->option('path');
+        $modelPaths = [$this->resolvePath($pathOption)];
 
-        $report = (new Scanner($this->files))->scan($modelsPath, $migrationsPath);
+        $migrationsRaw = (string) $this->option('migrations-path');
+        $migrationPaths = $migrationsRaw === '' ? [] : [$this->resolvePath($migrationsRaw)];
+
+        if ($pathOption === 'app/Models' && $this->option('no-modules') !== true) {
+            foreach (ModulePaths::discover() as $pair) {
+                $modelPaths[] = $pair['models'];
+                $migrationPaths[] = $pair['migrations'];
+            }
+        }
+
+        $report = (new Scanner($this->files))->scan($modelPaths, $migrationPaths);
 
         if ($this->option('json') === true) {
             $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
