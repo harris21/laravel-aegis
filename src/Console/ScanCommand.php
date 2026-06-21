@@ -53,13 +53,12 @@ final class ScanCommand extends Command
      */
     private function resolveScanPaths(): array
     {
-        $pathOption = (string) $this->option('path');
-        $modelPaths = [$this->resolvePath($pathOption)];
+        $modelPaths = [$this->resolvePath((string) $this->option('path'))];
 
         $migrationsRaw = (string) $this->option('migrations-path');
         $migrationPaths = $migrationsRaw === '' ? [] : [$this->resolvePath($migrationsRaw)];
 
-        if ($pathOption === 'app/Models' && $this->option('no-modules') !== true) {
+        if ($this->shouldAutoDetectModules()) {
             foreach (ModulePaths::discover() as $pair) {
                 $modelPaths[] = $pair['models'];
                 $migrationPaths[] = $pair['migrations'];
@@ -67,6 +66,20 @@ final class ScanCommand extends Command
         }
 
         return [$modelPaths, $migrationPaths];
+    }
+
+    /**
+     * Auto-detection runs only for the default scan: passing --path at all
+     * means "scan exactly this" (even if the value equals the default), and
+     * --no-modules opts out entirely.
+     */
+    private function shouldAutoDetectModules(): bool
+    {
+        if ($this->option('no-modules') === true) {
+            return false;
+        }
+
+        return ! $this->input->hasParameterOption('--path');
     }
 
     /**

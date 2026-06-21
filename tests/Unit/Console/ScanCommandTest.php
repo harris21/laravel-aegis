@@ -52,3 +52,14 @@ it('does not auto-detect modules when an explicit --path is given', function () 
     aegisRemoveDir($root);
     rmdir($empty);
 });
+
+it('does not auto-detect modules when --path is explicitly set to the default value', function () {
+    $root = aegisModuleWithModel('author_email');
+    config()->set('modules.paths.modules', $root);
+
+    $this->artisan('vo:scan', ['--path' => 'app/Models'])
+        ->doesntExpectOutputToContain('author_email')
+        ->assertSuccessful();
+
+    aegisRemoveDir($root);
+});
