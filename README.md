@@ -128,6 +128,8 @@ Value Object coverage: 6%.
 
 The scanner reads model `$fillable`, `$casts`, and `casts()` declarations, plus any `Schema::create` blocks in your migrations. It never touches your database. Pass `--json` for machine-readable output, `--no-cast` to omit the `--cast=Model.column` part of each suggestion, or `--path` and `--migrations-path` to point at non-standard directories.
 
+If your app uses [`nwidart/laravel-modules`](https://github.com/nWidart/laravel-modules), `vo:scan` detects it automatically and also walks every module's models and migrations alongside `app/Models` — no flags needed. Module locations are read from the package's own config, so custom layouts are respected. Pass `--no-modules` to scan only the default `app/Models` directory, or an explicit `--path` to target a single module.
+
 ## Flags
 
 | Flag | Purpose |
