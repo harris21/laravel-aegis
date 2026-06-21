@@ -29,6 +29,30 @@ final class ScanCommand extends Command
 
     public function handle(): int
     {
+        [$modelPaths, $migrationPaths] = $this->resolveScanPaths();
+
+        $report = (new Scanner($this->files))->scan($modelPaths, $migrationPaths);
+
+        if ($this->option('json') === true) {
+            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return self::SUCCESS;
+        }
+
+        $this->renderText($report);
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Resolve the model and migration directories to scan, folding in
+     * auto-detected nwidart/laravel-modules paths unless the user narrowed
+     * the scan with an explicit --path or opted out with --no-modules.
+     *
+     * @return array{0: list<string>, 1: list<string>}
+     */
+    private function resolveScanPaths(): array
+    {
         $pathOption = (string) $this->option('path');
         $modelPaths = [$this->resolvePath($pathOption)];
 
@@ -42,17 +66,7 @@ final class ScanCommand extends Command
             }
         }
 
-        $report = (new Scanner($this->files))->scan($modelPaths, $migrationPaths);
-
-        if ($this->option('json') === true) {
-            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            return self::SUCCESS;
-        }
-
-        $this->renderText($report);
-
-        return self::SUCCESS;
+        return [$modelPaths, $migrationPaths];
     }
 
     /**
