@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HarrisRafto\Aegis\Console;
 
+use HarrisRafto\Aegis\Console\Concerns\ResolvesConsoleInput;
 use HarrisRafto\Aegis\Console\Generators\CastWirer;
 use HarrisRafto\Aegis\Console\Generators\TestGenerator;
 use HarrisRafto\Aegis\Console\Generators\ValueObjectGenerator;
@@ -14,6 +15,8 @@ use RuntimeException;
 
 final class MakeValueObjectCommand extends Command
 {
+    use ResolvesConsoleInput;
+
     /** @var string */
     protected $signature = 'make:value-object
                             {name : The PascalCase name of the Value Object class}
@@ -72,7 +75,7 @@ final class MakeValueObjectCommand extends Command
             : $this->planTestWrite($name, $namespace);
 
         $castPlan = $this->option('cast') !== null
-            ? $this->planCast((string) $this->option('cast'), $namespace, $name)
+            ? $this->planCast($this->stringOption('cast'), $namespace, $name)
             : null;
 
         // Dry-run reports the plan and exits.
@@ -105,7 +108,7 @@ final class MakeValueObjectCommand extends Command
 
     private function resolveName(): string
     {
-        $raw = (string) $this->argument('name');
+        $raw = $this->stringArgument('name');
 
         if (preg_match('/^[A-Z][A-Za-z0-9]*$/', $raw) !== 1) {
             throw new InvalidArgumentException(
@@ -131,7 +134,7 @@ final class MakeValueObjectCommand extends Command
 
     private function resolveType(): string
     {
-        $type = (string) $this->option('type');
+        $type = $this->stringOption('type');
         $lower = strtolower($type);
 
         if (in_array($lower, ['string', 'int', 'float', 'bool', 'mixed'], true)) {
@@ -176,9 +179,7 @@ final class MakeValueObjectCommand extends Command
      */
     private function resolveMethods(): array
     {
-        $methods = array_filter($this->option('method'), 'is_string');
-
-        return array_values(array_map(static function (string $spec): array {
+        return array_map(static function (string $spec): array {
             $spec = trim($spec);
 
             if (! str_contains($spec, ':')) {
@@ -194,7 +195,7 @@ final class MakeValueObjectCommand extends Command
             [$name, $return] = explode(':', $spec, 2);
 
             return ['name' => trim($name), 'return' => trim($return)];
-        }, $methods));
+        }, $this->stringListOption('method'));
     }
 
     // ----------------------------------------------------------------------

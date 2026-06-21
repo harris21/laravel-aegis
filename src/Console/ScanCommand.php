@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HarrisRafto\Aegis\Console;
 
+use HarrisRafto\Aegis\Console\Concerns\ResolvesConsoleInput;
 use HarrisRafto\Aegis\Console\Scanner\ModulePaths;
 use HarrisRafto\Aegis\Console\Scanner\Scanner;
 use Illuminate\Console\Command;
@@ -11,6 +12,8 @@ use Illuminate\Filesystem\Filesystem;
 
 final class ScanCommand extends Command
 {
+    use ResolvesConsoleInput;
+
     /** @var string */
     protected $signature = 'vo:scan
                             {--path=app/Models : Directory of Eloquent models to walk}
@@ -49,9 +52,9 @@ final class ScanCommand extends Command
      */
     private function resolveScanPaths(): array
     {
-        $modelPaths = [$this->resolvePath((string) $this->option('path'))];
+        $modelPaths = [$this->resolvePath($this->stringOption('path'))];
 
-        $migrationsRaw = (string) $this->option('migrations-path');
+        $migrationsRaw = $this->stringOption('migrations-path');
         $migrationPaths = $migrationsRaw === '' ? [] : [$this->resolvePath($migrationsRaw)];
 
         if ($this->shouldAutoDetectModules()) {
