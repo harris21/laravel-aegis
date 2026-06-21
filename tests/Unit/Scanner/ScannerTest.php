@@ -135,7 +135,7 @@ PHP);
     expect($classes)->toContain('Post')->toContain('Order');
 
     $order = collect($report['models'])->firstWhere('class', 'Order');
-    expect($order['columns'])->toContain('billing_email'); // unioned from Shop's migration by table name
+    expect($order['columns'])->toContain('billing_email');
 
     aegisRemoveDir($root);
 });

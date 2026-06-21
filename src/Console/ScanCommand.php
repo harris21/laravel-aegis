@@ -45,10 +45,6 @@ final class ScanCommand extends Command
     }
 
     /**
-     * Resolve the model and migration directories to scan, folding in
-     * auto-detected nwidart/laravel-modules paths unless the user narrowed
-     * the scan with an explicit --path or opted out with --no-modules.
-     *
      * @return array{0: list<string>, 1: list<string>}
      */
     private function resolveScanPaths(): array
@@ -68,11 +64,6 @@ final class ScanCommand extends Command
         return [$modelPaths, $migrationPaths];
     }
 
-    /**
-     * Auto-detection runs only for the default scan: passing --path at all
-     * means "scan exactly this" (even if the value equals the default), and
-     * --no-modules opts out entirely.
-     */
     private function shouldAutoDetectModules(): bool
     {
         if ($this->option('no-modules') === true) {
